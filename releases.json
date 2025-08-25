@@ -1,12 +1,22 @@
 {
-  "latest": "v1.0.2",
+  "latest": "v1.0.4",
   "releases": [
     {
-      "version": "v1.0.2", 
+      "version": "v1.0.4",
+      "releaseDate": "2025-08-25",
+      "changelog": [
+        "Updated via automated release system"
+      ],
+      "platforms": {
+        "bloom-tower": "https://raw.githubusercontent.com/unwndevices/GreenverseApp-firmware/main/firmware/bloom-tower/bloom-tower-v1.0.4.bin"
+      }
+    },
+    {
+      "version": "v1.0.2",
       "releaseDate": "2025-08-25",
       "changelog": [
         "OTA update system implementation",
-        "Serial command interface for updates", 
+        "Serial command interface for updates",
         "Memory optimization (96.8% → 92.9% flash usage)",
         "Interactive confirmation prompts",
         "Support for dev/stable release channels"
