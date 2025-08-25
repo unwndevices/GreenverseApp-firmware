@@ -4,6 +4,9 @@ on:
   repository_dispatch:
     types: [firmware-release]
 
+permissions:
+  contents: write
+
 jobs:
   copy-release:
     runs-on: ubuntu-latest
