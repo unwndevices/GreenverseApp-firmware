@@ -1,0 +1,103 @@
+name: Publish Firmware Release
+
+on:
+  repository_dispatch:
+    types: [firmware-release]
+
+jobs:
+  copy-release:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Download Release from Private Repo
+        run: |
+          VERSION="${{ github.event.client_payload.version }}"
+          echo "Processing firmware release: ${VERSION}"
+          
+          # Download release data from private repo
+          curl -L -H "Authorization: Bearer ${{ secrets.PRIVATE_REPO_TOKEN }}" \
+               "https://api.github.com/repos/unwndevices/GreenverseApp/releases/tags/${VERSION}" \
+               > release_data.json
+               
+          # Extract firmware download URL
+          FIRMWARE_URL=$(cat release_data.json | jq -r '.assets[] | select(.name | contains("firmware.bin")) | .browser_download_url')
+          
+          if [ "$FIRMWARE_URL" = "null" ] || [ -z "$FIRMWARE_URL" ]; then
+            echo "No firmware.bin found in release assets"
+            exit 1
+          fi
+          
+          # Download firmware binary
+          curl -L -H "Authorization: Bearer ${{ secrets.PRIVATE_REPO_TOKEN }}" \
+               "$FIRMWARE_URL" \
+               -o "bloom-tower-${VERSION}.bin"
+               
+      - name: Copy to Firmware Directory
+        run: |
+          VERSION="${{ github.event.client_payload.version }}"
+          mkdir -p firmware/bloom-tower
+          
+          # Copy firmware with version tag
+          cp "bloom-tower-${VERSION}.bin" "firmware/bloom-tower/"
+          
+          # Update latest symlink 
+          cd firmware/bloom-tower
+          rm -f latest.bin
+          ln -s "bloom-tower-${VERSION}.bin" latest.bin
+          cd ../..
+          
+      - name: Update releases.json
+        run: |
+          VERSION="${{ github.event.client_payload.version }}"
+          DATE=$(date -u +%Y-%m-%d)
+          
+          # Extract changelog from private repo release
+          CHANGELOG=$(cat release_data.json | jq -r '.body' | head -10 | sed 's/^/    "/' | sed 's/$/",/' | head -5)
+          
+          # Create update script
+          cat > update_releases.js << 'EOF'
+          const fs = require('fs');
+          const version = process.argv[2];
+          const date = process.argv[3];
+          
+          let releases = { latest: version, releases: [] };
+          if (fs.existsSync('releases.json')) {
+            releases = JSON.parse(fs.readFileSync('releases.json'));
+          }
+          
+          // Update latest version
+          releases.latest = version;
+          
+          // Add new release (avoid duplicates)
+          const existingIndex = releases.releases.findIndex(r => r.version === version);
+          const newRelease = {
+            version,
+            releaseDate: date,
+            changelog: ["Updated via automated release system"],
+            platforms: {
+              "bloom-tower": `https://raw.githubusercontent.com/unwndevices/GreenverseApp-firmware/main/firmware/bloom-tower/bloom-tower-${version}.bin`
+            }
+          };
+          
+          if (existingIndex >= 0) {
+            releases.releases[existingIndex] = newRelease;
+          } else {
+            releases.releases.unshift(newRelease);
+          }
+          
+          fs.writeFileSync('releases.json', JSON.stringify(releases, null, 2));
+          EOF
+          
+          node update_releases.js "${VERSION}" "${DATE}"
+          
+      - name: Commit and Push
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add .
+          git commit -m "Release ${{ github.event.client_payload.version }}" || exit 0
+          git push
