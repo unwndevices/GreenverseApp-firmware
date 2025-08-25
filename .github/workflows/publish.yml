@@ -30,7 +30,7 @@ jobs:
           jq -r '.body' release_info.json > changelog.txt
           
           # Download binary using gh CLI (more reliable for private repos)
-          gh release download ${VERSION} --repo unwndevices/GreenverseApp --pattern "bloom-tower-${VERSION}.bin"
+          gh release download ${VERSION} --repo unwndevices/GreenverseApp --pattern "bloom-tower-${VERSION}.bin" --clobber
                
       - name: Copy to Firmware Directory
         run: |
