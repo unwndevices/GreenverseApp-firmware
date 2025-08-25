@@ -23,13 +23,17 @@ jobs:
                "https://api.github.com/repos/unwndevices/GreenverseApp/releases/tags/${VERSION}" \
                > release_data.json
                
-          # Extract firmware download URL
-          FIRMWARE_URL=$(cat release_data.json | jq -r '.assets[] | select(.name | contains("firmware.bin")) | .browser_download_url')
+          # Extract firmware download URL (look for bloom-tower-*.bin)
+          FIRMWARE_URL=$(cat release_data.json | jq -r '.assets[] | select(.name | test("bloom-tower-.*\\.bin$")) | .browser_download_url')
           
           if [ "$FIRMWARE_URL" = "null" ] || [ -z "$FIRMWARE_URL" ]; then
-            echo "No firmware.bin found in release assets"
+            echo "No bloom-tower-*.bin found in release assets"
+            echo "Available assets:"
+            cat release_data.json | jq -r '.assets[].name'
             exit 1
           fi
+          
+          echo "Found firmware URL: $FIRMWARE_URL"
           
           # Download firmware binary
           curl -L -H "Authorization: Bearer ${{ secrets.PRIVATE_REPO_TOKEN }}" \
