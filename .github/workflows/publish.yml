@@ -17,31 +17,20 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           
       - name: Download Release from Private Repo
+        env:
+          GH_TOKEN: ${{ secrets.PRIVATE_REPO_TOKEN }}
         run: |
           VERSION="${{ github.event.client_payload.version }}"
           echo "Processing firmware release: ${VERSION}"
           
-          # Download release data from private repo
-          curl -L -H "Authorization: Bearer ${{ secrets.PRIVATE_REPO_TOKEN }}" \
-               "https://api.github.com/repos/unwndevices/GreenverseApp/releases/tags/${VERSION}" \
-               > release_data.json
-               
-          # Extract firmware download URL (look for bloom-tower-*.bin)
-          FIRMWARE_URL=$(cat release_data.json | jq -r '.assets[] | select(.name | test("bloom-tower-.*\\.bin$")) | .browser_download_url')
+          # Get release info and download binaries using gh CLI
+          gh release view ${VERSION} --repo unwndevices/GreenverseApp --json body > release_info.json
           
-          if [ "$FIRMWARE_URL" = "null" ] || [ -z "$FIRMWARE_URL" ]; then
-            echo "No bloom-tower-*.bin found in release assets"
-            echo "Available assets:"
-            cat release_data.json | jq -r '.assets[].name'
-            exit 1
-          fi
+          # Extract changelog
+          jq -r '.body' release_info.json > changelog.txt
           
-          echo "Found firmware URL: $FIRMWARE_URL"
-          
-          # Download firmware binary
-          curl -L -H "Authorization: Bearer ${{ secrets.PRIVATE_REPO_TOKEN }}" \
-               "$FIRMWARE_URL" \
-               -o "bloom-tower-${VERSION}.bin"
+          # Download binary using gh CLI (more reliable for private repos)
+          gh release download ${VERSION} --repo unwndevices/GreenverseApp --pattern "bloom-tower-${VERSION}.bin"
                
       - name: Copy to Firmware Directory
         run: |
@@ -62,9 +51,6 @@ jobs:
           VERSION="${{ github.event.client_payload.version }}"
           DATE=$(date -u +%Y-%m-%d)
           
-          # Extract changelog from private repo release
-          CHANGELOG=$(cat release_data.json | jq -r '.body' | head -10 | sed 's/^/    "/' | sed 's/$/",/' | head -5)
-          
           # Create update script
           cat > update_releases.js << 'EOF'
           const fs = require('fs');
@@ -76,6 +62,10 @@ jobs:
             releases = JSON.parse(fs.readFileSync('releases.json'));
           }
           
+          // Read changelog from extracted release notes
+          const changelogText = fs.readFileSync('changelog.txt', 'utf8');
+          const changelog = changelogText.split('\n').filter(line => line.trim()).slice(0, 10);
+          
           // Update latest version
           releases.latest = version;
           
@@ -84,7 +74,7 @@ jobs:
           const newRelease = {
             version,
             releaseDate: date,
-            changelog: ["Updated via automated release system"],
+            changelog: changelog.length > 0 ? changelog : ["Updated via automated release system"],
             platforms: {
               "bloom-tower": `https://raw.githubusercontent.com/unwndevices/GreenverseApp-firmware/main/firmware/bloom-tower/bloom-tower-${version}.bin`
             }
@@ -100,6 +90,9 @@ jobs:
           EOF
           
           node update_releases.js "${VERSION}" "${DATE}"
+          
+          # Clean up temporary files
+          rm -f bloom-tower-*.bin update_releases.js release_info.json changelog.txt
           
       - name: Commit and Push
         run: |
