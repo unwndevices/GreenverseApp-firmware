@@ -1,6 +1,23 @@
 {
-  "latest": "v1.0.6",
+  "latest": "v1.0.7",
   "releases": [
+    {
+      "version": "v1.0.7",
+      "releaseDate": "2025-09-09",
+      "changelog": [
+        "## Changes",
+        "- feat(firmware): release 1.0.7 — invert water-low logic, add rapid power-cycle reset (3 cycles) with EXTRA relay blink, and light relay boot blink; bump APP_VERSION to 1.0.7",
+        "- fix: Improve device registration after BLE disconnection during provisioning",
+        "- fix: Resolve MQTT connection loop caused by empty device IDs",
+        "- feat: Implement critical missing features for admin dashboard",
+        "## Technical Details",
+        "- Built from commit: 3f8e38b",
+        "- Previous version: v1.0.6"
+      ],
+      "platforms": {
+        "bloom-tower": "https://raw.githubusercontent.com/unwndevices/GreenverseApp-firmware/main/firmware/bloom-tower/bloom-tower-v1.0.7.bin"
+      }
+    },
     {
       "version": "v1.0.6",
       "releaseDate": "2025-08-25",
