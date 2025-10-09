@@ -1,6 +1,25 @@
 {
-  "latest": "v1.0.8",
+  "latest": "v1.0.9",
   "releases": [
+    {
+      "version": "v1.0.9",
+      "releaseDate": "2025-10-09",
+      "changelog": [
+        "## Changes",
+        "- chore: tag password reset logs for mcp",
+        "- fix: unblock password reset flow",
+        "- fix: add connectionStatus getter to MqttService for immediate status access",
+        "- perf: significantly improve MQTT offline detection speed",
+        "- fix: correct online device count in garden dashboard",
+        "- fix: localize hydroponic planner strings",
+        "- fix: support overnight hydroponic schedules",
+        "- fix: gate hydroponic schedule sync",
+        "- feat: add hydroponic schedule conflict detection"
+      ],
+      "platforms": {
+        "bloom-tower": "https://raw.githubusercontent.com/unwndevices/GreenverseApp-firmware/main/firmware/bloom-tower/bloom-tower-v1.0.9.bin"
+      }
+    },
     {
       "version": "v1.0.8",
       "releaseDate": "2025-09-09",
