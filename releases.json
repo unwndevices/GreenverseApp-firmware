@@ -1,6 +1,25 @@
 {
-  "latest": "v1.0.9",
+  "latest": "v1.0.10",
   "releases": [
+    {
+      "version": "v1.0.10",
+      "releaseDate": "2026-02-09",
+      "changelog": [
+        "## Changes",
+        "- chore: bump version to 1.0.10+10 for release",
+        "- work starting",
+        "- multiple fixes",
+        "- feat: add demo device management and assigned-device access",
+        "- added new icons",
+        "- fixed many warnings",
+        "- pre-publishing changes",
+        "- pre-aptoide release",
+        "## Technical Details"
+      ],
+      "platforms": {
+        "bloom-tower": "https://raw.githubusercontent.com/unwndevices/GreenverseApp-firmware/main/firmware/bloom-tower/bloom-tower-v1.0.10.bin"
+      }
+    },
     {
       "version": "v1.0.9",
       "releaseDate": "2025-10-09",
