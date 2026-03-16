@@ -1,6 +1,25 @@
 {
-  "latest": "v1.0.10",
+  "latest": "v1.0.11",
   "releases": [
+    {
+      "version": "v1.0.11",
+      "releaseDate": "2026-03-16",
+      "changelog": [
+        "## Changes",
+        "- manual",
+        "- fix: check adb connect output instead of exit code",
+        "- fix: use dynamic ADB port instead of hardcoded 5555",
+        "- feat: add remote APK install script via wireless ADB over Tailscale",
+        "- docs(phase-06): complete phase execution",
+        "- docs(06-05): complete permission rationale dialog wiring plan",
+        "- feat(06-05): wire camera permission rationale dialog before image picker",
+        "- feat(06-05): wire BLE permission rationale dialogs to all scanning call sites",
+        "- docs(06-05): add gap closure plan for PLAY-06 permission rationale wiring"
+      ],
+      "platforms": {
+        "bloom-tower": "https://raw.githubusercontent.com/unwndevices/GreenverseApp-firmware/main/firmware/bloom-tower/bloom-tower-v1.0.11.bin"
+      }
+    },
     {
       "version": "v1.0.10",
       "releaseDate": "2026-02-09",
