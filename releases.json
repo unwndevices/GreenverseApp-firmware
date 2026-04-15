@@ -1,6 +1,25 @@
 {
-  "latest": "v1.0.11",
+  "latest": "v1.0.12",
   "releases": [
+    {
+      "version": "v1.0.12",
+      "releaseDate": "2026-04-15",
+      "changelog": [
+        "## Changes",
+        "- fix: MQTT broker domain, simplify diagnosis UX, update CI Flutter version",
+        "- fix: revert UI regressions from GSD phase on device pages",
+        "- fix: remap care_reminder Hive typeIds to avoid collisions",
+        "- fix: register care journal Hive adapters in DatabaseService",
+        "- fix: remove notification dependency from PlantCareService",
+        "- fix: register CareEntry/GrowthEntry/CareReminder Hive adapters",
+        "- fix: make notification init best-effort in PlantCareService",
+        "- fix: don't let notification failures break care logging",
+        "- fix: await PlantCareService initialization before use"
+      ],
+      "platforms": {
+        "bloom-tower": "https://raw.githubusercontent.com/unwndevices/GreenverseApp-firmware/main/firmware/bloom-tower/bloom-tower-v1.0.12.bin"
+      }
+    },
     {
       "version": "v1.0.11",
       "releaseDate": "2026-03-16",
