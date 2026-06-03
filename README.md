@@ -4,7 +4,12 @@ Public firmware distribution repository for Greenverse IoT plant care devices.
 
 ## Supported Devices
 
-- **Bloom Tower**: ESP32-C3 based hydroponic device
+- **Bloom Tower** (`bloom-tower`): ESP32-C3 based hydroponic device (Rev A)
+- **Bloom Tower Rev B** (`bloom-tower-revb`): ESP32-C6 based hydroponic device
+
+Each device line is published under its own platform key in `releases.json` and
+its own `firmware/<platform>/` directory. A device only installs a binary found
+under its own platform key, so the two lines update independently.
 
 ## Firmware Downloads
 

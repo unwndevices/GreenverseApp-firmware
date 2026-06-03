@@ -10,94 +10,123 @@ permissions:
 jobs:
   copy-release:
     runs-on: ubuntu-latest
-    
+
     steps:
       - uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          
+
+      - name: Resolve release parameters
+        id: params
+        run: |
+          VERSION="${{ github.event.client_payload.version }}"
+          PLATFORM="${{ github.event.client_payload.platform }}"
+          # Backward-compat: older dispatches (Rev A) send only {version}.
+          [ -z "$PLATFORM" ] && PLATFORM="bloom-tower"
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "platform=${PLATFORM}" >> $GITHUB_OUTPUT
+          echo "Release: ${VERSION} (${PLATFORM})"
+
       - name: Download Release from Private Repo
         env:
           GH_TOKEN: ${{ secrets.PRIVATE_REPO_TOKEN }}
         run: |
-          VERSION="${{ github.event.client_payload.version }}"
+          VERSION="${{ steps.params.outputs.version }}"
           echo "Processing firmware release: ${VERSION}"
-          
+
           # Get release info and download binaries using gh CLI
           gh release view ${VERSION} --repo unwndevices/GreenverseApp --json body > release_info.json
-          
+
           # Extract changelog
           jq -r '.body' release_info.json > changelog.txt
-          
-          # Download binary using gh CLI (more reliable for private repos)
+
+          # Download binary using gh CLI (more reliable for private repos).
+          # The private build always names the asset bloom-tower-<version>.bin;
+          # the -revb suffix already lives in <version>, so names never collide
+          # across platforms.
           gh release download ${VERSION} --repo unwndevices/GreenverseApp --pattern "bloom-tower-${VERSION}.bin" --clobber
-               
+
       - name: Copy to Firmware Directory
         run: |
-          VERSION="${{ github.event.client_payload.version }}"
-          mkdir -p firmware/bloom-tower
-          
-          # Copy firmware with version tag
-          cp "bloom-tower-${VERSION}.bin" "firmware/bloom-tower/"
-          
-          # Update latest symlink 
-          cd firmware/bloom-tower
+          VERSION="${{ steps.params.outputs.version }}"
+          PLATFORM="${{ steps.params.outputs.platform }}"
+          mkdir -p "firmware/${PLATFORM}"
+
+          # Copy firmware with version tag into this platform's directory
+          cp "bloom-tower-${VERSION}.bin" "firmware/${PLATFORM}/"
+
+          # Update this platform's latest symlink
+          cd "firmware/${PLATFORM}"
           rm -f latest.bin
           ln -s "bloom-tower-${VERSION}.bin" latest.bin
           cd ../..
-          
+
       - name: Update releases.json
         run: |
-          VERSION="${{ github.event.client_payload.version }}"
+          VERSION="${{ steps.params.outputs.version }}"
+          PLATFORM="${{ steps.params.outputs.platform }}"
           DATE=$(date -u +%Y-%m-%d)
-          
+
           # Create update script
           cat > update_releases.js << 'EOF'
           const fs = require('fs');
           const version = process.argv[2];
           const date = process.argv[3];
-          
+          const platform = process.argv[4];
+          const url = `https://raw.githubusercontent.com/unwndevices/GreenverseApp-firmware/main/firmware/${platform}/bloom-tower-${version}.bin`;
+
           let releases = { latest: version, releases: [] };
           if (fs.existsSync('releases.json')) {
             releases = JSON.parse(fs.readFileSync('releases.json'));
           }
-          
+
           // Read changelog from extracted release notes
           const changelogText = fs.readFileSync('changelog.txt', 'utf8');
           const changelog = changelogText.split('\n').filter(line => line.trim()).slice(0, 10);
-          
-          // Update latest version
+
+          // Global "latest" is the most recently published release across ALL
+          // platforms. Cross-platform safety comes from the per-platform
+          // platforms[] lookup on the device: a device that reads a `latest`
+          // belonging to another firmware line finds no entry for its own
+          // platform key and no-ops. (Caveat: a line only auto-updates while the
+          // global latest points at its own most recent release.)
           releases.latest = version;
-          
-          // Add new release (avoid duplicates)
+
           const existingIndex = releases.releases.findIndex(r => r.version === version);
-          const newRelease = {
-            version,
-            releaseDate: date,
-            changelog: changelog.length > 0 ? changelog : ["Updated via automated release system"],
-            platforms: {
-              "bloom-tower": `https://raw.githubusercontent.com/unwndevices/GreenverseApp-firmware/main/firmware/bloom-tower/bloom-tower-${version}.bin`
-            }
-          };
-          
+          const platformUrl = url;
+
           if (existingIndex >= 0) {
-            releases.releases[existingIndex] = newRelease;
+            // A release entry for this version already exists. Merge this
+            // platform's binary into it instead of clobbering — this is what lets
+            // one version carry multiple platform binaries (e.g. a coordinated
+            // bloom-tower + bloom-tower-revb release).
+            const entry = releases.releases[existingIndex];
+            entry.releaseDate = entry.releaseDate || date;
+            if (changelog.length > 0) entry.changelog = changelog;
+            entry.platforms = entry.platforms || {};
+            entry.platforms[platform] = platformUrl;
+            releases.releases[existingIndex] = entry;
           } else {
-            releases.releases.unshift(newRelease);
+            releases.releases.unshift({
+              version,
+              releaseDate: date,
+              changelog: changelog.length > 0 ? changelog : ["Updated via automated release system"],
+              platforms: { [platform]: platformUrl }
+            });
           }
-          
+
           fs.writeFileSync('releases.json', JSON.stringify(releases, null, 2));
           EOF
-          
-          node update_releases.js "${VERSION}" "${DATE}"
-          
+
+          node update_releases.js "${VERSION}" "${DATE}" "${PLATFORM}"
+
           # Clean up temporary files
           rm -f bloom-tower-*.bin update_releases.js release_info.json changelog.txt
-          
+
       - name: Commit and Push
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add .
-          git commit -m "Release ${{ github.event.client_payload.version }}" || exit 0
+          git commit -m "Release ${{ steps.params.outputs.version }} (${{ steps.params.outputs.platform }})" || exit 0
           git push
