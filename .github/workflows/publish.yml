@@ -84,13 +84,21 @@ jobs:
           const changelogText = fs.readFileSync('changelog.txt', 'utf8');
           const changelog = changelogText.split('\n').filter(line => line.trim()).slice(0, 10);
 
-          // Global "latest" is the most recently published release across ALL
-          // platforms. Cross-platform safety comes from the per-platform
-          // platforms[] lookup on the device: a device that reads a `latest`
-          // belonging to another firmware line finds no entry for its own
-          // platform key and no-ops. (Caveat: a line only auto-updates while the
-          // global latest points at its own most recent release.)
-          releases.latest = version;
+          // Per-platform latest: the authoritative pointer each firmware line
+          // checks (newer firmware reads latestByPlatform[<its platform>]), so
+          // lines update independently regardless of publish order.
+          releases.latestByPlatform = releases.latestByPlatform || {};
+          releases.latestByPlatform[platform] = version;
+
+          // Global "latest" is retained for firmware that predates
+          // latestByPlatform (deployed Rev A v1 devices read it directly). That
+          // firmware only ever knew the bloom-tower line, so keep `latest`
+          // tracking bloom-tower and leave it untouched for other platforms —
+          // otherwise a Rev B release would make every deployed Rev A device see
+          // a "latest" it can't install.
+          if (platform === 'bloom-tower') {
+            releases.latest = version;
+          }
 
           const existingIndex = releases.releases.findIndex(r => r.version === version);
           const platformUrl = url;
