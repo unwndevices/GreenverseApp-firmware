@@ -2,9 +2,24 @@
   "latest": "v1.0.12",
   "latestByPlatform": {
     "bloom-tower": "v1.0.12",
-    "bloom-tower-revb": "v2.0.1-revb"
+    "bloom-tower-revb": "v2.1.0-revb"
   },
   "releases": [
+    {
+      "version": "v2.1.0-revb",
+      "releaseDate": "2026-06-08",
+      "changelog": [
+        "## Changes",
+        "- feat(firmware): Rev B grow-light PWM brightness dimming (2.1.0-revb)",
+        "- feat(tower): manual light/pump override + real telemetry, drop mock UI",
+        "## Technical Details",
+        "- Built from commit: 46c1ad3",
+        "- Previous version: v2.0.1-revb"
+      ],
+      "platforms": {
+        "bloom-tower-revb": "https://raw.githubusercontent.com/unwndevices/GreenverseApp-firmware/main/firmware/bloom-tower-revb/bloom-tower-v2.1.0-revb.bin"
+      }
+    },
     {
       "version": "v2.0.1-revb",
       "releaseDate": "2026-06-08",
