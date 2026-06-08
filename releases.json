@@ -1,9 +1,29 @@
 {
   "latest": "v1.0.12",
   "latestByPlatform": {
-    "bloom-tower": "v1.0.12"
+    "bloom-tower": "v1.0.12",
+    "bloom-tower-revb": "v2.0.1-revb"
   },
   "releases": [
+    {
+      "version": "v2.0.1-revb",
+      "releaseDate": "2026-06-08",
+      "changelog": [
+        "## Changes",
+        "- feat(firmware): Rev B water-level percentage telemetry (2.0.1-revb)",
+        "- feat(firmware): Rev B INA219 VBUS monitor + device-ID MAC fix",
+        "- fix(firmware): Rev B BLE advertising overflow + phase 8 verification docs",
+        "- feat(firmware): Rev B OTA reads per-platform latest (independent update lines)",
+        "- ci(firmware): multi-platform release pipeline for Rev B (bloom-tower-revb)",
+        "- feat(firmware): Rev B GitHub OTA + partitions (phase 7)",
+        "- feat(firmware): Rev B schedule engine port (phase 6)",
+        "- feat(firmware): Rev B pump duration auto-stop safety (phase 5)",
+        "- feat(firmware): Rev B WiFi+MQTT runtime, commands, single light, boot chase (phase 4)"
+      ],
+      "platforms": {
+        "bloom-tower-revb": "https://raw.githubusercontent.com/unwndevices/GreenverseApp-firmware/main/firmware/bloom-tower-revb/bloom-tower-v2.0.1-revb.bin"
+      }
+    },
     {
       "version": "v1.0.12",
       "releaseDate": "2026-04-15",
