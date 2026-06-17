@@ -2,9 +2,24 @@
   "latest": "v1.0.12",
   "latestByPlatform": {
     "bloom-tower": "v1.0.12",
-    "bloom-tower-revb": "v2.1.0-revb"
+    "bloom-tower-revb": "v2.2.0-revb"
   },
   "releases": [
+    {
+      "version": "v2.2.0-revb",
+      "releaseDate": "2026-06-17",
+      "changelog": [
+        "## Changes",
+        "- feat(firmware): smooth PWM boot light sweep",
+        "- feat(firmware): Rev B IO9 factory-reset button (2.2.0-revb)",
+        "## Technical Details",
+        "- Built from commit: 609aa9d",
+        "- Previous version: v2.1.0-revb"
+      ],
+      "platforms": {
+        "bloom-tower-revb": "https://raw.githubusercontent.com/unwndevices/GreenverseApp-firmware/main/firmware/bloom-tower-revb/bloom-tower-v2.2.0-revb.bin"
+      }
+    },
     {
       "version": "v2.1.0-revb",
       "releaseDate": "2026-06-08",
